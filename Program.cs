@@ -34,6 +34,9 @@ builder.Services.AddSwaggerGen(options =>
         });
 });
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -73,6 +76,8 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "LoginService API v1");
     });
 }
+
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 

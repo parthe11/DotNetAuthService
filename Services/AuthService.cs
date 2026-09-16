@@ -24,7 +24,7 @@ public class AuthService : IAuthService
 
         if(existingUser != null)
         {
-            throw new Exception("Email already registered!");
+            throw new ConflictException("Email already registered!");
         }
 
         //Hash password
@@ -47,7 +47,7 @@ public class AuthService : IAuthService
         // if user not exists return exception
         if(user == null)
         {
-            throw new UnauthorizedAccessException("Invalid Email or Password!");
+            throw new UnauthorizedException("Invalid Email or Password!");
         }
 
         // else check the retrieved user passwordHash and request passwordhash
@@ -55,7 +55,7 @@ public class AuthService : IAuthService
         // if failed, return password doesn't match
         if(passwordMatch == PasswordVerificationResult.Failed)
         {
-            throw new UnauthorizedAccessException("Password is invalid!");
+            throw new UnauthorizedException("Invalid Email or Password!");
         }
 
         //else return JWT token
