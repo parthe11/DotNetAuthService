@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace LoginService;
 
@@ -20,7 +21,7 @@ public class AuthService : IAuthService
         //Validation
 
         //Check if same email already exists
-        var existingUser = await _authRepo.getUserByEmail(request.Email);
+        var existingUser = await _authRepo.GetUserByEmail(request.Email);
 
         if(existingUser != null)
         {
@@ -32,6 +33,7 @@ public class AuthService : IAuthService
         var passwordHash = _passwordHasher.HashPassword(userToCreate, request.Password);
 
         userToCreate.PasswordHash = passwordHash;
+        userToCreate.Role = Roles.User;
 
         //Create User
         var user = await _authRepo.RegisterUser(userToCreate);
@@ -42,7 +44,7 @@ public class AuthService : IAuthService
     public async Task<string> Login(LoginRequest request)
     {
         //get user for matching email
-        var user = await _authRepo.getUserByEmail(request.Email);
+        var user = await _authRepo.GetUserByEmail(request.Email);
         
         // if user not exists return exception
         if(user == null)
@@ -61,5 +63,17 @@ public class AuthService : IAuthService
         //else return JWT token
 
         return _jwtService.Generatetoken(user);
+    }
+
+    public async Task<List<UserDto>> GetAllUsers()
+    {
+        var allUsers = await _authRepo.GetAllUsers();
+        var allUsersResponse = new List<UserDto>();
+        
+        foreach(User user in allUsers){
+            allUsersResponse.Add(UserMapper.ToUserDto(user));
+        };
+
+        return allUsersResponse;
     }
 }

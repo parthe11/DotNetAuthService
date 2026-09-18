@@ -11,7 +11,7 @@ public class AuthRepository : IAuthRepository
         _dbContext = dbContext;
     }
 
-    public async Task<User?> getUserByEmail(string email)
+    public async Task<User?> GetUserByEmail(string email)
     {
         return await _dbContext.Users.FirstOrDefaultAsync(user => user.Email == email);
     }
@@ -22,5 +22,11 @@ public class AuthRepository : IAuthRepository
         await _dbContext.SaveChangesAsync();
 
         return user;
+    }
+
+    public async Task<List<User>> GetAllUsers()
+    {
+        var allUsers = await _dbContext.Users.ToListAsync();
+        return allUsers;
     }
 }

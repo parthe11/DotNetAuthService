@@ -2,6 +2,7 @@
 
 public interface IAuthRepository
 {
-    Task<User?> getUserByEmail(string email);
+    Task<User?> GetUserByEmail(string email);
     Task<User> RegisterUser(User user);
+    Task<List<User>> GetAllUsers();
 }

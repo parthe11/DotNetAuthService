@@ -29,6 +29,10 @@ public class JWTService : IJWTService
             new Claim(
                 ClaimTypes.Email,
                 user.Email
+            ),
+            new Claim(
+                ClaimTypes.Role,
+                user.Role
             )
         };
 
@@ -42,7 +46,7 @@ public class JWTService : IJWTService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(1),
+            expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: credentials
         );
 

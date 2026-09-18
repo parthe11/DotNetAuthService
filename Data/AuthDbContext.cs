@@ -33,6 +33,10 @@ public class AuthDbContext : DbContext
             entity.Property(u => u.PasswordHash)
                 .HasColumnType("varchar(500)")
                 .IsRequired();
+            
+            entity.Property(u => u.Role)
+                .HasMaxLength(20)
+                .IsRequired();    
 
             entity.HasIndex(u => u.Email)
                 .IsUnique()

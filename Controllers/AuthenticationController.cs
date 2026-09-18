@@ -3,6 +3,7 @@ using LoginService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client.NativeInterop;
 
 namespace MyApp.Namespace;
 
@@ -21,7 +22,7 @@ public class AuthenticationController : ControllerBase
     public async Task<IActionResult> Register(RegisterRequest request)
     {
         var user = await _authService.CreateUser(request);
-        return Created("",user);
+        return Created("User registered successfully!",user);
     }
 
     [HttpPost("Login")]
@@ -45,6 +46,15 @@ public class AuthenticationController : ControllerBase
             userName,
             email
         });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("AllUsers")]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var allUsers = await _authService.GetAllUsers();
+
+        return Ok(allUsers);
     }
 }
 
