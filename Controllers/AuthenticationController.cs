@@ -28,8 +28,8 @@ public class AuthenticationController : ControllerBase
     [HttpPost("Login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var jwtToken = await _authService.Login(request);
-        return Ok(jwtToken);
+        var tokenResponse = await _authService.Login(request);
+        return Ok(tokenResponse);
     }
 
     [Authorize]
@@ -55,6 +55,21 @@ public class AuthenticationController : ControllerBase
         var allUsers = await _authService.GetAllUsers();
 
         return Ok(allUsers);
+    }
+
+    [HttpPost("Refresh")]
+    public async Task<IActionResult> Refresh(RefreshTokenRequest refreshTokenRequest)
+    {
+        var tokenResponse = await _authService.GetRefreshToken(refreshTokenRequest.RefreshToken);
+        return Ok(tokenResponse);
+    }
+
+    [HttpPost("Logout")]
+    public async Task<IActionResult> Logout(RefreshTokenRequest refreshTokenRequest)
+    {
+        await _authService.LogoutAsync(refreshTokenRequest.RefreshToken);
+
+        return NoContent();
     }
 }
 
