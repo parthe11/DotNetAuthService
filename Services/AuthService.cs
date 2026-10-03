@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 using NuGet.Common;
 
 namespace LoginService;
@@ -143,7 +144,13 @@ public class AuthService : IAuthService
             ExpiresAt = DateTime.UtcNow.AddDays(7)
         };
 
-        await _refreshTokenRepo.RotateTokenAsync(storedRefreshToken, refTokenToAdd);
+        try{
+            await _refreshTokenRepo.RotateTokenAsync(storedRefreshToken, refTokenToAdd);
+        }
+        catch(DbUpdateConcurrencyException)
+        {
+            throw new UnauthorizedException("Invalid refresh token!");
+        }
 
         return new TokenResponse
         {

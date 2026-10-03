@@ -65,6 +65,9 @@ public class AuthDbContext : DbContext
             entity.Property(x => x.ReplacedByTokenHash)
                 .HasMaxLength(64);
 
+            entity.Property(x => x.RowVersion)
+                .IsRowVersion();
+
             entity.HasIndex(x => x.TokenHash)
                 .IsUnique();
 
