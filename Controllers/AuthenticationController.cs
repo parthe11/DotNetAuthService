@@ -3,6 +3,7 @@ using LoginService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Identity.Client.NativeInterop;
 
 namespace MyApp.Namespace;
@@ -18,6 +19,7 @@ public class AuthenticationController : ControllerBase
         _authService = authService;
     }
 
+    [EnableRateLimiting("RegisterPolicy")]
     [HttpPost("Register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
@@ -25,6 +27,7 @@ public class AuthenticationController : ControllerBase
         return Created("User registered successfully!",user);
     }
 
+    [EnableRateLimiting("LoginPolicy")]
     [HttpPost("Login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
@@ -57,6 +60,7 @@ public class AuthenticationController : ControllerBase
         return Ok(allUsers);
     }
 
+    [EnableRateLimiting("RefreshPolicy")]
     [HttpPost("Refresh")]
     public async Task<IActionResult> Refresh(RefreshTokenRequest refreshTokenRequest)
     {

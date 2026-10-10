@@ -1,7 +1,10 @@
+using System.Net;
 using System.Text;
+using System.Threading.RateLimiting;
 using LoginService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -57,6 +60,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddRateLimiter(options =>{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.OnRejected = async (context, cancellationToken) => {
+        context.HttpContext.Response.ContentType = "application/problem+json";
+
+        var problem = new ProblemDetails{
+            Status = StatusCodes.Status429TooManyRequests,
+            Title = "Too Many Requests",
+            Detail = "Too many request. Please try again later."
+        };
+
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            problem,
+            cancellationToken);
+    };
+
+    options.AddPolicy("LoginPolicy", httpContext =>
+        CreateIpPolicy(5, TimeSpan.FromMinutes(1), httpContext));
+    options.AddPolicy("RegisterPolicy", httpContext =>
+        CreateIpPolicy(3, TimeSpan.FromMinutes(1), httpContext));
+    options.AddPolicy("RefreshPolicy", httpContext =>
+        CreateIpPolicy(10, TimeSpan.FromMinutes(1), httpContext));        
+});  
+
 builder.Services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
@@ -65,6 +93,28 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJWTService,JWTService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+
+static RateLimitPartition<string> CreateIpPolicy(
+    int permitLimit,
+    TimeSpan window,
+    HttpContext httpContext)
+{
+    var ipAddress =
+        httpContext.Connection.RemoteIpAddress?.ToString()
+        ?? "unknown";
+
+    return RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: ipAddress,
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = permitLimit,
+            Window = window,
+            AutoReplenishment = true,
+            QueueLimit = 0
+        });
+}
+
 
 var app = builder.Build();
 
@@ -82,6 +132,8 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 
